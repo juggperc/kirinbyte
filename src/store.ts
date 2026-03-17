@@ -6,12 +6,15 @@ interface WorldState {
   tick: number;
   worldContext: string;
   globalEvent: string;
+  tickSummaries: string[];
   
   setApiKey: (key: string) => void;
   setModelId: (modelId: string) => void;
   incrementTick: () => void;
   setWorldContext: (ctx: string) => void;
   setGlobalEvent: (evt: string) => void;
+  addTickSummary: (summary: string) => void;
+  clearTickSummaries: () => void;
 }
 
 export const useStore = create<WorldState>((set) => ({
@@ -20,10 +23,13 @@ export const useStore = create<WorldState>((set) => ({
   tick: 0,
   worldContext: 'Year 2026, tech startup boom in SE Asia',
   globalEvent: '',
+  tickSummaries: [],
 
   setApiKey: (key) => set({ apiKey: key }),
   setModelId: (model) => set({ modelId: model }),
   incrementTick: () => set((state) => ({ tick: state.tick + 1 })),
   setWorldContext: (ctx) => set({ worldContext: ctx }),
   setGlobalEvent: (evt) => set({ globalEvent: evt }),
+  addTickSummary: (summary) => set((state) => ({ tickSummaries: [summary, ...state.tickSummaries] })),
+  clearTickSummaries: () => set({ tickSummaries: [] }),
 }));

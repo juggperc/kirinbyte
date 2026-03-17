@@ -16,7 +16,7 @@
 KirinByte achieves localized realism without the overhead of O(n²) agent interactions by feeding deterministic physics and state definitions into a single LLM forward pass.
 
 ### Tiered Memory System
-1. **Tier 1 (Core State):** Global World Context and Tick mechanisms (Powered by Zustand).
+1. **Tier 1 (Core State):** Global World Context, Global Event history (Tick Summaries), and Tick mechanisms (Powered by Zustand).
 2. **Tier 2 (Active Memory):** The subset of entities "woken up" by the current global event.
 3. **Tier 3 (Persistent State):** The sleeping matrix of all entities, archived and recent memories, and raw statistical states (Powered by IndexedDB/Dexie).
 
@@ -29,6 +29,7 @@ graph TD;
     B --> D{OpenRouter API};
     D -->|Prompts: Context + Event + Entities| E[LLM Inference];
     E -->|JSON State Patch & Memory Compressions| F[Patch Engine];
+    E -->|Global Narrative Summary| H[Simulation Log];
     F -->|Updates| C;
     F -->|Triggers UI Re-render| G[Dashboard];
 ```
@@ -37,8 +38,10 @@ graph TD;
 
 ## ✨ Features
 - **Client-Side Only:** No backend required. Your OpenRouter API key communicates directly from your browser.
+- **Dynamic AI World Seeding:** Generate entirely unique starting entities and factions on the fly based purely on the `World Context` input.
 - **Semantic Wake-Up:** Employs substring heuristic scoring against entity traits and memories to determine who is affected by an event.
 - **Auto-Compressing Memory:** Entities store up to 5 `recent_memory` items before the LLM natively compresses them into an `archival_memory` block, saving context tokens over long simulation runs.
+- **Global Tick Summaries:** At the end of each simulation tick, the AI provides a narrative summary of the event's butterfly effect on the woken entities.
 - **Shadcn + Tailwind Dark Mode:** A sleek, tactical dashboard to observe the changing states of the world entities.
 
 ---

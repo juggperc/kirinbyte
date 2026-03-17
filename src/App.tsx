@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Settings, Play, Database, BrainCircuit } from 'lucide-react';
+import { Settings, Play, Database, BrainCircuit, Sparkles, ScrollText } from 'lucide-react';
 
-import { db, type Entity } from './db';
+import { db } from './db';
 import { useStore } from './store';
-import { executeTick } from './engine';
+import { executeTick, seedWorldByAI } from './engine';
 
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -12,6 +12,7 @@ import { Textarea } from './components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Badge } from './components/ui/badge';
 import { Separator } from './components/ui/separator';
+import { ScrollArea } from './components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -20,104 +21,11 @@ import {
   DialogTrigger,
 } from './components/ui/dialog';
 
-const SEED_ENTITIES: Entity[] = [
-  {
-    id: 'e1',
-    name: 'Wei Chen',
-    type: 'Person',
-    traits: ['Tech CEO', 'Beijing', 'Aggressive', 'Visionary'],
-    state: { wealth: 50000000, alignment: 'Chaotic Neutral', company_status: 'Growing' },
-    recent_memory: ['Launched new AI product', 'Secured Series B funding'],
-    archival_memory: 'Founded a successful AI startup in Beijing.'
-  },
-  {
-    id: 'e2',
-    name: 'CryptoWhale99',
-    type: 'Person',
-    traits: ['Crypto Trader', 'Anonymous', 'Risk-taker'],
-    state: { wealth: 100000000, alignment: 'True Neutral', portfolio_risk: 'High' },
-    recent_memory: ['Bought the dip on Bitcoin', 'Lost 2M on a meme coin'],
-    archival_memory: 'Made a fortune in the 2021 crypto bull run.'
-  },
-  {
-    id: 'e3',
-    name: 'Global Bank Corp',
-    type: 'Organization',
-    traits: ['Financial Institution', 'Conservative', 'Regulated'],
-    state: { assets: 500000000000, alignment: 'Lawful Evil', public_trust: 'Low' },
-    recent_memory: ['Lobbied against crypto regulations', 'Fined for compliance failure'],
-    archival_memory: 'A century-old banking institution slowly adapting to the digital age.'
-  },
-  {
-    id: 'e4',
-    name: 'Sarah Jenkins',
-    type: 'Person',
-    traits: ['Aussie Day Trader', 'Sydney', 'Optimistic'],
-    state: { wealth: 250000, alignment: 'Neutral Good', stress_level: 'Medium' },
-    recent_memory: ['Took a break from trading', 'Reading about macroeconomics'],
-    archival_memory: 'Quit corporate job to trade full-time from Sydney.'
-  },
-  {
-    id: 'e5',
-    name: 'TechRegulator Bot',
-    type: 'AI',
-    traits: ['Government Tool', 'Strict', 'Efficient'],
-    state: { processing_power: 'High', alignment: 'Lawful Neutral', targets: ['CryptoWhale99'] },
-    recent_memory: ['Flagged suspicious transactions', 'Updated compliance rules'],
-    archival_memory: 'Created to monitor and regulate emerging tech markets.'
-  },
-  {
-    id: 'e6',
-    name: 'Neon DAO',
-    type: 'Organization',
-    traits: ['Decentralized', 'Innovative', 'Unpredictable'],
-    state: { treasury: 5000000, alignment: 'Chaotic Good', member_count: 1500 },
-    recent_memory: ['Voted to fund a public goods project', 'Debating new governance token'],
-    archival_memory: 'A fast-growing DAO focused on funding open-source tech.'
-  },
-  {
-    id: 'e7',
-    name: 'Elena Rostova',
-    type: 'Person',
-    traits: ['Venture Capitalist', 'London', 'Calculated'],
-    state: { wealth: 15000000, alignment: 'Lawful Neutral', risk_appetite: 'Low' },
-    recent_memory: ['Met with Wei Chen', 'Reviewing portfolio performance'],
-    archival_memory: 'Former investment banker turned cautious VC.'
-  },
-  {
-    id: 'e8',
-    name: 'Quantum Systems Inc',
-    type: 'Organization',
-    traits: ['Research Lab', 'Secretive', 'Cutting-edge'],
-    state: { breakthrough_progress: '80%', alignment: 'True Neutral', funding: 'Secure' },
-    recent_memory: ['Achieved quantum supremacy in testing', 'Hired top physicists'],
-    archival_memory: 'A stealth startup working on next-gen quantum computing.'
-  },
-  {
-    id: 'e9',
-    name: 'Marcus Thorne',
-    type: 'Person',
-    traits: ['Cybersecurity Expert', 'San Francisco', 'Paranoid'],
-    state: { wealth: 800000, alignment: 'Chaotic Good', threat_level: 'High' },
-    recent_memory: ['Discovered a zero-day exploit', 'Secured personal servers'],
-    archival_memory: 'A renowned hacker turned security consultant.'
-  },
-  {
-    id: 'e10',
-    name: 'Project Cassandra',
-    type: 'AI',
-    traits: ['Predictive Model', 'Ominous', 'Accurate'],
-    state: { accuracy_rate: '95%', alignment: 'True Neutral', current_prediction: 'Market Crash' },
-    recent_memory: ['Analyzed global financial data', 'Predicted a regulatory crackdown'],
-    archival_memory: 'An advanced AI designed to predict global socio-economic shifts.'
-  }
-];
-
 export default function App() {
   const { 
     apiKey, setApiKey, 
     modelId, setModelId, 
-    tick, 
+    tick, tickSummaries,
     worldContext, setWorldContext, 
     globalEvent, setGlobalEvent 
   } = useStore();
@@ -125,14 +33,18 @@ export default function App() {
   const entities = useLiveQuery(() => db.entities.toArray(), []) || [];
   
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSeed = async () => {
+    setIsSeeding(true);
+    setError(null);
     try {
-      await db.entities.clear();
-      await db.entities.bulkAdd(SEED_ENTITIES);
+      await seedWorldByAI();
     } catch (err: any) {
-      console.error(err);
+      setError(err.message || 'An error occurred during seeding.');
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -222,7 +134,7 @@ export default function App() {
 
           <Button 
             onClick={handleExecute} 
-            disabled={isExecuting || !apiKey || !globalEvent.trim()}
+            disabled={isExecuting || isSeeding || !apiKey || !globalEvent.trim()}
             className="w-full h-14 text-lg font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isExecuting ? (
@@ -238,10 +150,43 @@ export default function App() {
             </div>
           )}
 
-          <div className="mt-auto pt-6 border-t border-slate-800">
-            <Button onClick={handleSeed} variant="secondary" className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
-              <Database className="w-4 h-4 mr-2" />
-              Seed World Data
+          <div className="mt-auto pt-6 flex flex-col gap-4 border-t border-slate-800">
+            {tickSummaries.length > 0 && (
+              <Dialog>
+                <DialogTrigger render={<Button variant="outline" className="w-full bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700" />}>
+                  <ScrollText className="w-4 h-4 mr-2 text-indigo-400" />
+                  View Simulation Logs
+                </DialogTrigger>
+                <DialogContent className="bg-slate-900 border-slate-800 text-slate-50 sm:max-w-[600px] h-[80vh] flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle className="text-slate-100 flex items-center gap-2">
+                      <ScrollText className="w-5 h-5 text-indigo-400" /> Global Event Summaries
+                    </DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="flex-1 mt-4 rounded-md border border-slate-800 bg-slate-950 p-4">
+                    <div className="space-y-4">
+                      {tickSummaries.map((summary, idx) => (
+                        <div key={idx} className="p-3 bg-slate-900 rounded-md border border-slate-800">
+                          <p className="text-sm text-slate-300 leading-relaxed">{summary}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            <Button 
+              onClick={handleSeed} 
+              disabled={isSeeding || isExecuting || !apiKey}
+              variant="secondary" 
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 disabled:opacity-50"
+            >
+              {isSeeding ? (
+                <span className="animate-pulse flex items-center gap-2"><Sparkles className="w-4 h-4" /> Generating World...</span>
+              ) : (
+                <span className="flex items-center gap-2"><Database className="w-4 h-4" /> AI Seed World</span>
+              )}
             </Button>
           </div>
         </aside>
@@ -300,8 +245,17 @@ export default function App() {
             
             {entities.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center h-64 text-slate-500 gap-3 border-2 border-dashed border-slate-800 rounded-xl">
-                <Database className="w-8 h-8 opacity-50" />
-                <p>No entities found. Click "Seed World Data" to begin.</p>
+                {isSeeding ? (
+                  <>
+                    <Sparkles className="w-8 h-8 opacity-50 animate-pulse text-indigo-400" />
+                    <p className="animate-pulse">LLM is weaving the world fabric...</p>
+                  </>
+                ) : (
+                  <>
+                    <Database className="w-8 h-8 opacity-50" />
+                    <p>No entities found. Click "AI Seed World" to begin.</p>
+                  </>
+                )}
               </div>
             )}
           </div>
