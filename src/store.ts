@@ -15,6 +15,7 @@ interface WorldState {
   setGlobalEvent: (evt: string) => void;
   addTickSummary: (summary: string) => void;
   clearTickSummaries: () => void;
+  resetSimulation: () => void;
 }
 
 export const useStore = create<WorldState>((set) => ({
@@ -32,4 +33,5 @@ export const useStore = create<WorldState>((set) => ({
   setGlobalEvent: (evt) => set({ globalEvent: evt }),
   addTickSummary: (summary) => set((state) => ({ tickSummaries: [summary, ...state.tickSummaries] })),
   clearTickSummaries: () => set({ tickSummaries: [] }),
+  resetSimulation: () => set({ tick: 0, globalEvent: '', tickSummaries: [] }),
 }));
