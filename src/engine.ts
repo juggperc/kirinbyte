@@ -29,7 +29,7 @@ export async function seedWorldByAI() {
 
   if (!apiKey) throw new Error('OpenRouter API key is required to seed the world.');
 
-  const systemMessage = `You are an omniscient simulation architect. Based on the provided World Context, generate exactly 10 unique, rich, and diverse entities (people, corporations, AIs, DAOs, or factions) that inhabit this world. Return ONLY raw JSON matching this schema: { "entities": [ { "id": "string (e.g. e1, e2)", "name": "string", "type": "string (e.g. Person, Corp)", "traits": ["string", "string"], "state": { "wealth": 0, "alignment": "string", "hidden_motive": "string" }, "recent_memory": ["string"], "archival_memory": "string" } ] }. Ensure the JSON is clean and valid. Do not wrap with \`\`\`json.`;
+  const systemMessage = `You are an omniscient simulation architect. Based on the provided World Context, generate exactly 10 unique, rich, and diverse entities (people, corporations, AIs, DAOs, or factions) that inhabit this world. You MUST return ONLY raw JSON representing an object with an "entities" array. Schema: { "entities": [ { "id": "string (e.g. e1, e2)", "name": "string", "type": "string (e.g. Person, Corp)", "traits": ["string", "string"], "state": { "wealth": 0, "alignment": "string", "hidden_motive": "string" }, "recent_memory": ["string"], "archival_memory": "string" } ] }. Ensure the JSON is valid and clean.`;
 
   const userMessage = `World Context: ${worldContext}`;
 
@@ -59,14 +59,21 @@ export async function seedWorldByAI() {
   
   try {
     const rawContent = data.choices[0].message.content.trim();
-    const cleanedContent = rawContent.replace(/^```json\n/, '').replace(/\n```$/, '');
-    prediction = JSON.parse(cleanedContent);
-  } catch (err) {
-    throw new Error('Failed to parse AI seeding response as JSON.');
+    const startIndex = rawContent.indexOf('{');
+    const endIndex = rawContent.lastIndexOf('}');
+    
+    if (startIndex === -1 || endIndex === -1) {
+      throw new Error(`Could not find JSON object in response. Raw response: ${rawContent}`);
+    }
+    
+    const jsonString = rawContent.slice(startIndex, endIndex + 1);
+    prediction = JSON.parse(jsonString);
+  } catch (err: any) {
+    throw new Error(`Failed to parse AI seeding response as JSON. Error: ${err.message || err}. Raw content: ${data.choices?.[0]?.message?.content}`);
   }
 
   if (!prediction || !prediction.entities || prediction.entities.length === 0) {
-    throw new Error('Invalid JSON schema returned by model during seeding.');
+    throw new Error(`Invalid JSON schema returned by model during seeding. Parsed object: ${JSON.stringify(prediction)}`);
   }
 
   await db.entities.clear();
@@ -152,15 +159,21 @@ ${JSON.stringify(activeEntities, null, 2)}
   
   try {
     const rawContent = data.choices[0].message.content.trim();
-    // Remove markdown blocks if they slipped through
-    const cleanedContent = rawContent.replace(/^```json\n/, '').replace(/\n```$/, '');
-    prediction = JSON.parse(cleanedContent);
-  } catch (err) {
-    throw new Error('Failed to parse model response as JSON. Content was: ' + data.choices?.[0]?.message?.content);
+    const startIndex = rawContent.indexOf('{');
+    const endIndex = rawContent.lastIndexOf('}');
+    
+    if (startIndex === -1 || endIndex === -1) {
+      throw new Error(`Could not find JSON object in response. Raw response: ${rawContent}`);
+    }
+    
+    const jsonString = rawContent.slice(startIndex, endIndex + 1);
+    prediction = JSON.parse(jsonString);
+  } catch (err: any) {
+    throw new Error(`Failed to parse model response as JSON. Error: ${err.message || err}. Raw content: ${data.choices?.[0]?.message?.content}`);
   }
 
   if (!prediction || !prediction.entities) {
-    throw new Error('Invalid JSON schema returned by model.');
+    throw new Error(`Invalid JSON schema returned by model. Parsed object: ${JSON.stringify(prediction)}`);
   }
 
   // 4. Patching
