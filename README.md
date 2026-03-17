@@ -1,73 +1,92 @@
-# React + TypeScript + Vite
+# 🐉 KirinByte
+> A single-LLM predictive world simulation web application built with an Omniscient State Matrix.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Zustand](https://img.shields.io/badge/zustand-%2320232a.svg?style=for-the-badge&logo=react&logoColor=white)](https://github.com/pmndrs/zustand)
 
-Currently, two official plugins are available:
+**KirinByte** is an entirely client-side, browser-based world simulation engine. Instead of relying on expensive, multi-agent swarms where entities talk to each other directly, KirinByte utilizes a highly efficient **Omniscient State Matrix** approach combined with **Semantic Wake-up Routing**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🏗 Architecture Overview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+KirinByte achieves localized realism without the overhead of O(n²) agent interactions by feeding deterministic physics and state definitions into a single LLM forward pass.
 
-## Expanding the ESLint configuration
+### Tiered Memory System
+1. **Tier 1 (Core State):** Global World Context and Tick mechanisms (Powered by Zustand).
+2. **Tier 2 (Active Memory):** The subset of entities "woken up" by the current global event.
+3. **Tier 3 (Persistent State):** The sleeping matrix of all entities, archived and recent memories, and raw statistical states (Powered by IndexedDB/Dexie).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Execution Loop (Semantic Wake-up)
+```mermaid
+graph TD;
+    A[User Input: Global Event] --> B(Engine: Semantic Wake-up);
+    B -->|Query Traits & Memories| C[(IndexedDB)];
+    C -.->|Returns Top 5 Relevant Entities| B;
+    B --> D{OpenRouter API};
+    D -->|Prompts: Context + Event + Entities| E[LLM Inference];
+    E -->|JSON State Patch & Memory Compressions| F[Patch Engine];
+    F -->|Updates| C;
+    F -->|Triggers UI Re-render| G[Dashboard];
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ✨ Features
+- **Client-Side Only:** No backend required. Your OpenRouter API key communicates directly from your browser.
+- **Semantic Wake-Up:** Employs substring heuristic scoring against entity traits and memories to determine who is affected by an event.
+- **Auto-Compressing Memory:** Entities store up to 5 `recent_memory` items before the LLM natively compresses them into an `archival_memory` block, saving context tokens over long simulation runs.
+- **Shadcn + Tailwind Dark Mode:** A sleek, tactical dashboard to observe the changing states of the world entities.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) installed.
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/juggperc/kirinbyte.git
+   cd kirinbyte
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open `http://localhost:5173` in your browser.
+
+---
+
+## 🎮 How to Play
+
+1. **Configure:** Click the "Settings" button in the top right and enter your **OpenRouter API Key** and preferred **Model ID** (defaults to `deepseek/deepseek-chat`).
+2. **Seed the World:** Click **Seed World Data** in the left sidebar to populate the IndexedDB with the starter pack of simulated entities (Tech CEOs, Crypto Whales, DAOs, AI bots, etc.).
+3. **Set Context:** Optionally modify the `World Context` to set the geopolitical or economic stage.
+4. **Trigger Events:** Type an event in the `Next Global Event` box (e.g., *"A massive solar flare knocks out internet in the Pacific"*).
+5. **Execute Tick:** Click **Execute Tick**. The engine will wake up the most relevant entities, pass them to the LLM, and seamlessly update their financial status, alignment, and memories in real-time.
+
+---
+
+## 🛠 Tech Stack Details
+- **Vite + React:** Lighting-fast frontend build tooling and UI framework.
+- **TypeScript:** Strict structural typing for the JSON schemas mapping LLM outputs.
+- **Zustand:** Dead-simple global state management for the simulation tick and API keys.
+- **Dexie:** An excellent wrapper for IndexedDB allowing asynchronous relational querying for our semantic wake-up.
+- **Shadcn UI & TailwindCSS:** Accessible, beautiful, headless UI components styled with utility classes.
+
+---
+
+*Built by a deterministic physics text engine.* 🌌
