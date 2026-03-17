@@ -27,7 +27,7 @@ interface SeedingPrediction {
 
 export async function seedWorldByAI() {
   const state = useStore.getState();
-  const { apiKey, modelId, worldContext, setEngineStatus } = state;
+  const { apiKey, modelId, worldContext, predictionGoal, setEngineStatus } = state;
 
   if (!apiKey) throw new Error('OpenRouter API key is required to seed the world.');
 
@@ -36,6 +36,8 @@ export async function seedWorldByAI() {
   const systemMessage = `You are an omniscient simulation architect designing a deep, interconnected societal model based on the provided World Context. 
 Generate exactly 10 unique, rich, and diverse entities (people, corporations, AIs, DAOs, or ideological factions).
 Crucially, they must be inter-connected. Define their 'relationships' matrix targeting the 'id' of other entities in the array (e.g., e1 might secretly fund e3, or e4 is politically opposed to e2).
+
+${predictionGoal ? `Important: The user has defined a Prediction Goal: "${predictionGoal}". Design these entities so they are the most relevant actors to eventually determine the outcome of this goal.` : ''}
 
 You MUST return ONLY raw JSON representing an object with an "entities" array. 
 Schema: { "entities": [ { "id": "string (e1 through e10)", "name": "string", "type": "string", "traits": ["string"], "state": { "wealth_or_power": 0, "alignment": "string", "hidden_motive": "string" }, "relationships": [ { "targetId": "string (e.g. e2)", "nature": "string", "strength": 0-100 } ], "recent_memory": ["string"], "archival_memory": "string" } ] }. 
@@ -100,7 +102,7 @@ Ensure the JSON is valid and clean.`;
 
 export async function executeTick() {
   const state = useStore.getState();
-  const { apiKey, modelId, worldContext, globalEvent, setEngineStatus } = state;
+  const { apiKey, modelId, worldContext, predictionGoal, globalEvent, setEngineStatus } = state;
 
   if (!apiKey) {
     throw new Error('OpenRouter API key is required.');
@@ -141,6 +143,8 @@ export async function executeTick() {
   // 2. Prompt Construction (Societal Depth)
   const systemMessage = `You are the underlying physics and sociology engine for a deep simulation (akin to MiroFish or OASIS). 
 You receive the World Context, the Current Event, and the state of Active Entities. Predict exactly how the event changes their state, memetic alignment, and relational power dynamics in profound, interconnected ways (consider ripple effects, hidden motives, and structural changes). 
+
+${predictionGoal ? `CRITICAL INSTRUCTION: The user has set a Prediction Goal: "${predictionGoal}". Use this Goal as a lens to focus your analysis on relevant societal dynamics, but DO NOT assume a specific outcome. Emulate deterministic physics to derive unbiased, logical results relevant to this target.` : ''}
 
 Provide a high-level \`globalSummary\` describing the narrative aftermath of this event on these entities.
 Update their \`newRelationships\` array if alliances shift, hostilities break out, or dependencies form with other entities. Keep the strength 0-100.

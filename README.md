@@ -40,6 +40,7 @@ graph TD;
 ## ✨ Features
 - **Client-Side Only:** No backend required. Your OpenRouter API key communicates directly from your browser.
 - **Dynamic Societal Seeding:** Generate entirely unique starting entities and ideological factions on the fly based purely on the `World Context` input.
+- **Analytical Simulation Lens (Prediction Goals):** Focus the engine's deterministic analysis towards a specific question (e.g. "Predict the outcome of the war") without biasing the AI towards a specific narrative outcome.
 - **Reactive Network Graph:** Switch from the standard UI to a `react-force-graph` Societal Matrix view that visually maps how entities are connected via hidden funding, alliances, and hostilities.
 - **PDF Context Parsing:** Instantly ingest complex geopolitical briefs or sci-fi world-building lore by uploading a `.pdf` file to use as the World Context via `pdfjs-dist`.
 - **Granular Execution States:** Instead of a generic loading spinner, the engine tells you exactly what step of the calculation it is on (e.g., "Constructing Semantic Wake-up", "Patching Dimensional Timeline").

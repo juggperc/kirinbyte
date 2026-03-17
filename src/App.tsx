@@ -29,6 +29,7 @@ export default function App() {
     modelId, setModelId, 
     tick, tickSummaries, engineStatus,
     worldContext, setWorldContext, 
+    predictionGoal, setPredictionGoal,
     globalEvent, setGlobalEvent,
     resetSimulation
   } = useStore();
@@ -76,6 +77,7 @@ export default function App() {
           id: crypto.randomUUID(),
           timestamp: Date.now(),
           worldContext,
+          predictionGoal,
           finalTick: tick,
           summaries: [...tickSummaries],
           finalEntities: JSON.stringify(entities)
@@ -170,6 +172,9 @@ export default function App() {
                           </Badge>
                         </div>
                         <p className="text-xs text-slate-400 italic line-clamp-2">"{sim.worldContext}"</p>
+                        {sim.predictionGoal && (
+                           <p className="text-xs text-indigo-400/80 font-medium">Goal: {sim.predictionGoal}</p>
+                        )}
                         {sim.summaries.length > 0 && (
                           <div className="mt-2 pl-3 border-l-2 border-slate-800">
                             <p className="text-xs text-slate-300 line-clamp-3">
@@ -252,6 +257,16 @@ export default function App() {
               onChange={(e) => setWorldContext(e.target.value)}
               placeholder="Describe the geopolitical, cultural, and technological state of the world, or upload a PDF document..."
               className="bg-slate-950 border-slate-800 min-h-[140px] resize-none focus-visible:ring-indigo-500 text-slate-300 placeholder:text-slate-600 text-sm leading-relaxed"
+            />
+          </div>
+
+          <div>
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Simulation Goal (Optional Lens)</h2>
+            <Textarea 
+              value={predictionGoal}
+              onChange={(e) => setPredictionGoal(e.target.value)}
+              placeholder="e.g. Predict the outcome of the conflict over the next four weeks without bias."
+              className="bg-slate-950 border-slate-800 min-h-[60px] resize-none focus-visible:ring-indigo-500 text-slate-300 placeholder:text-slate-600 text-sm leading-relaxed"
             />
           </div>
 

@@ -21,6 +21,7 @@ export interface SimulationHistory {
   id: string;
   timestamp: number;
   worldContext: string;
+  predictionGoal?: string;
   finalTick: number;
   summaries: string[];
   finalEntities: string; // JSON string to keep it flat
@@ -31,7 +32,7 @@ const db = new Dexie('KirinByteDB') as Dexie & {
   simulations: EntityTable<SimulationHistory, 'id'>;
 };
 
-db.version(3).stores({
+db.version(4).stores({
   entities: 'id, name, type, *traits',
   simulations: 'id, timestamp'
 });
