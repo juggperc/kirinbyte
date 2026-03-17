@@ -7,6 +7,7 @@ interface WorldState {
   worldContext: string;
   globalEvent: string;
   tickSummaries: string[];
+  engineStatus: string;
   
   setApiKey: (key: string) => void;
   setModelId: (modelId: string) => void;
@@ -15,6 +16,7 @@ interface WorldState {
   setGlobalEvent: (evt: string) => void;
   addTickSummary: (summary: string) => void;
   clearTickSummaries: () => void;
+  setEngineStatus: (status: string) => void;
   resetSimulation: () => void;
 }
 
@@ -25,6 +27,7 @@ export const useStore = create<WorldState>((set) => ({
   worldContext: 'Year 2026, tech startup boom in SE Asia',
   globalEvent: '',
   tickSummaries: [],
+  engineStatus: '',
 
   setApiKey: (key) => set({ apiKey: key }),
   setModelId: (model) => set({ modelId: model }),
@@ -33,5 +36,6 @@ export const useStore = create<WorldState>((set) => ({
   setGlobalEvent: (evt) => set({ globalEvent: evt }),
   addTickSummary: (summary) => set((state) => ({ tickSummaries: [summary, ...state.tickSummaries] })),
   clearTickSummaries: () => set({ tickSummaries: [] }),
-  resetSimulation: () => set({ tick: 0, globalEvent: '', tickSummaries: [] }),
+  setEngineStatus: (status) => set({ engineStatus: status }),
+  resetSimulation: () => set({ tick: 0, globalEvent: '', tickSummaries: [], engineStatus: '' }),
 }));

@@ -1,11 +1,18 @@
 import Dexie, { type EntityTable } from 'dexie';
 
+export interface EntityRelationship {
+  targetId: string;
+  nature: string; // e.g. "Hostile", "Allied", "Dependent", "Secretly Funding"
+  strength: number; // 0 to 100
+}
+
 export interface Entity {
   id: string;
   name: string;
   type: string;
   traits: string[];
   state: Record<string, any>;
+  relationships: EntityRelationship[];
   recent_memory: string[];
   archival_memory: string;
 }
@@ -24,7 +31,7 @@ const db = new Dexie('KirinByteDB') as Dexie & {
   simulations: EntityTable<SimulationHistory, 'id'>;
 };
 
-db.version(2).stores({
+db.version(3).stores({
   entities: 'id, name, type, *traits',
   simulations: 'id, timestamp'
 });
